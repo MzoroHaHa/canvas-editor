@@ -1,6 +1,7 @@
 import { IEditorOption } from '../../..'
 import { DeepRequired } from '../../../interface/Common'
 import { Draw } from '../Draw'
+import { CERenderingContext } from '../../../interface/CERenderingContext'
 
 export class Watermark {
   private draw: Draw
@@ -11,7 +12,7 @@ export class Watermark {
     this.options = <DeepRequired<IEditorOption>>draw.getOptions()
   }
 
-  public render(ctx: CanvasRenderingContext2D) {
+  public render(ctx: CERenderingContext) {
     const {
       watermark: { data, opacity, font, size, color, repeat, gap },
       scale
@@ -19,9 +20,9 @@ export class Watermark {
     const width = this.draw.getWidth()
     const height = this.draw.getHeight()
     // 开始绘制
-    ctx.save()
-    ctx.globalAlpha = opacity
-    ctx.font = `${size * scale}px ${font}`
+    const prop = {
+      size: size*scale, font, alpha: opacity
+    }
     const measureText = ctx.measureText(data)
     if (repeat) {
       const dpr = this.draw.getPagePixelRatio()
@@ -55,24 +56,24 @@ export class Watermark {
         (patternWidth - textWidth) / 2,
         (patternHeight - textHeight) / 2 + measureText.actualBoundingBoxAscent
       )
-      // 创建平铺模式
-      const pattern = ctx.createPattern(temporaryCanvas, 'repeat')
-      if (pattern) {
-        ctx.fillStyle = pattern
-        ctx.fillRect(0, 0, width, height)
-      }
+      ctx.addWatermark(temporaryCanvas, {
+        startX: 0, startY: 0, width, height
+      })
     } else {
       const x = width / 2
       const y = height / 2
-      ctx.fillStyle = color
       ctx.translate(x, y)
       ctx.rotate((-45 * Math.PI) / 180)
-      ctx.fillText(
+      ctx.text(
         data,
         -measureText.width / 2,
-        measureText.actualBoundingBoxAscent - size / 2
+        measureText.actualBoundingBoxAscent - size / 2,
+        {
+          ...prop, color
+        }
       )
+      ctx.rotate((45 * Math.PI) / 180)
+      ctx.translate(-x, -y)
     }
-    ctx.restore()
   }
 }

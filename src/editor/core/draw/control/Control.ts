@@ -58,6 +58,7 @@ import {
 import { IRowElement } from '../../../interface/Row'
 import { RowFlex } from '../../../dataset/enum/Row'
 import { ZERO } from '../../../dataset/constant/Common'
+import { CERenderingContext } from '../../../interface/CERenderingContext'
 
 interface IMoveCursorResult {
   newIndex: number
@@ -102,7 +103,7 @@ export class Control {
     }
   }
 
-  public renderHighlightList(ctx: CanvasRenderingContext2D, pageNo: number) {
+  public renderHighlightList(ctx: CERenderingContext, pageNo: number) {
     const highlightMatchResult = this.controlSearch.getHighlightMatchResult()
     if (highlightMatchResult.length) {
       this.controlSearch.renderHighlightList(ctx, pageNo)
@@ -1020,7 +1021,7 @@ export class Control {
     this.controlBorder.recordBorderInfo(x, y, width, height)
   }
 
-  public drawBorder(ctx: CanvasRenderingContext2D) {
+  public drawBorder(ctx: CERenderingContext) {
     this.controlBorder.render(ctx)
   }
 

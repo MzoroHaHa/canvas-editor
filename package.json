@@ -65,6 +65,7 @@
     "vue": "^3.2.45"
   },
   "dependencies": {
+    "jspdf": "^2.5.2",
     "prismjs": "^1.27.0"
   },
   "simple-git-hooks": {
