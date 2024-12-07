@@ -15,7 +15,7 @@ export class Highlight extends AbstractRichText {
     if (!this.fillRect.width) return
     const { highlightAlpha } = this.options
     const { x, y, width, height } = this.fillRect
-    ctx.fillRect(x, y, width, height,  { color: this.fillColor, alpha: highlightAlpha})
+    ctx.fillRect(x, y, width, height,  { fillColor: this.fillColor, alpha: highlightAlpha})
     this.clearFillInfo()
   }
 }

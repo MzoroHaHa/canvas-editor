@@ -148,12 +148,19 @@ export class CanvasCERenderingContext implements CERenderingContext {
     return this.ctx.font
   }
 
-  measureText(text: string, font?: string): ITextMetrics {
-    if (font) {
+  measureText(text: string, prop: FontProperty): ITextMetrics {
+
+    let font
+    if (prop && prop.size && prop.font){
+       font = `${prop.fontStyle??''} ${prop.fontWeight??''} ${prop.size?`${prop.size}px` : ''} ${prop.font??''}`
+    }
+
+    if (font && font.trim().length > 0) {
+      this.ctx.save()
       this.ctx.font = font
     }
     const metrics = this.ctx.measureText(text)
-    if (font) {
+    if (font && font.trim().length > 0) {
       this.ctx.restore()
     }
     return metrics
@@ -185,6 +192,7 @@ export class CanvasRenderingContext2DLineDrawer implements LineDrawer {
   private readonly ctx: CanvasRenderingContext2D
 
   constructor(private _ctx: CanvasCERenderingContext, private prop: LineProperty) {
+    console.log(this.prop.color)
     this.alpha = this.prop.alpha ?? 1
     this.lineWidth = this.prop.lineWidth ?? 1
     this.strikeoutColor = this.prop.color ?? '#000'
@@ -216,10 +224,10 @@ export class CanvasRenderingContext2DLineDrawer implements LineDrawer {
       return
     }
     this.ctx.save()
-    this.ctx.beginPath()
     this.ctx.globalAlpha = this.alpha
     this.ctx.lineWidth = this.lineWidth
     this.ctx.strokeStyle = this.strikeoutColor
+    this.ctx.beginPath()
     if (this.prop.lineCap) {
       this.ctx.lineCap = this.prop.lineCap
     }

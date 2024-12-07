@@ -145,12 +145,18 @@ export class PdfCERenderingContext implements CERenderingContext {
   }
 
   // 这个方法返回值不准确，jspdf 中没有打到对应的接口
-  measureText(text: string, font?: string): ITextMetrics {
-    if (font) {
+  measureText(text: string, prop: FontProperty): ITextMetrics {
+    let font
+    if (prop && prop.size && prop.font){
+      font = `${prop.fontStyle??''} ${prop.fontWeight??0} ${prop.size?`${prop.size}px` : ''} ${prop.font??''}`
+    }
+
+    if (font && font.trim().length > 0) {
+      canvasCtx.save()
       canvasCtx.font = font
     }
     const metrics = canvasCtx.measureText(text)
-    if (font) {
+    if (font && font.trim().length > 0) {
       canvasCtx.restore()
     }
     return metrics

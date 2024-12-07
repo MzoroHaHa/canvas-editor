@@ -23,7 +23,9 @@ export class Watermark {
     const prop = {
       size: size*scale, font, alpha: opacity
     }
-    const measureText = ctx.measureText(data)
+    const measureText = ctx.measureText(data, {
+      size, font
+    })
     if (repeat) {
       const dpr = this.draw.getPagePixelRatio()
       const temporaryCanvas = document.createElement('canvas')

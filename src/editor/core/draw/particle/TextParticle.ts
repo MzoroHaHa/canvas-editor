@@ -41,7 +41,7 @@ export class TextParticle {
     ctx: CERenderingContext,
     font: string
   ): ITextMetrics {
-    return ctx.measureText(METRICS_BASIS_TEXT, font)
+    return ctx.measureText(METRICS_BASIS_TEXT, {font})
   }
 
   public measureWord(

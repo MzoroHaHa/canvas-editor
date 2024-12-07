@@ -79,7 +79,6 @@ export class RadioParticle {
     const top = Math.round(y - metrics.height + lineWidth)
     const width = metrics.width - gap * 2 * scale
     const height = metrics.height
-    ctx.translate(0.5, 0.5)
     // 边框
     ctx.circle(left + width / 2, top + height / 2, width / 2, {
       translate: [0.5, 0.5], color: radio?.value ? fillStyle : strokeStyle, lineWidth

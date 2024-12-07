@@ -1,4 +1,4 @@
-import { commentList, options } from './mock'
+import { commentList, options, data } from './mock'
 import './style.css'
 import prism from 'prismjs'
 import Editor, {
@@ -10,7 +10,6 @@ import Editor, {
   EditorZone,
   ElementType,
   IBlock,
-  ICatalogItem,
   IElement,
   KeyMap,
   ListStyle,
@@ -18,14 +17,14 @@ import Editor, {
   PageMode,
   PaperDirection,
   RowFlex,
+  splitText,
   TextDecorationStyle,
-  TitleLevel,
-  splitText
+  TitleLevel
 } from './editor'
 import { Dialog } from './components/dialog/Dialog'
 import { formatPrismToken } from './utils/prism'
 import { Signature } from './components/signature/Signature'
-import { debounce, nextTick, scrollIntoView } from './utils'
+import { debounce } from './utils'
 
 window.onload = function () {
   const isApple =
@@ -52,7 +51,7 @@ window.onload = function () {
           type: ElementType.SEPARATOR
         }
       ],
-      main: [],
+      main: data,
       footer: [
         {
           value: 'canvas-editor',
@@ -1226,60 +1225,6 @@ window.onload = function () {
     })
   }
 
-  async function updateCatalog() {
-    const catalog = await instance.command.getCatalog()
-    const catalogMainDom =
-      document.querySelector<HTMLDivElement>('.catalog__main')!
-    catalogMainDom.innerHTML = ''
-    if (catalog) {
-      const appendCatalog = (
-        parent: HTMLDivElement,
-        catalogItems: ICatalogItem[]
-      ) => {
-        for (let c = 0; c < catalogItems.length; c++) {
-          const catalogItem = catalogItems[c]
-          const catalogItemDom = document.createElement('div')
-          catalogItemDom.classList.add('catalog-item')
-          // 渲染
-          const catalogItemContentDom = document.createElement('div')
-          catalogItemContentDom.classList.add('catalog-item__content')
-          const catalogItemContentSpanDom = document.createElement('span')
-          catalogItemContentSpanDom.innerText = catalogItem.name
-          catalogItemContentDom.append(catalogItemContentSpanDom)
-          // 定位
-          catalogItemContentDom.onclick = () => {
-            instance.command.executeLocationCatalog(catalogItem.id)
-          }
-          catalogItemDom.append(catalogItemContentDom)
-          if (catalogItem.subCatalog && catalogItem.subCatalog.length) {
-            appendCatalog(catalogItemDom, catalogItem.subCatalog)
-          }
-          // 追加
-          parent.append(catalogItemDom)
-        }
-      }
-      appendCatalog(catalogMainDom, catalog)
-    }
-  }
-  let isCatalogShow = true
-  const catalogDom = document.querySelector<HTMLElement>('.catalog')!
-  const catalogModeDom =
-    document.querySelector<HTMLDivElement>('.catalog-mode')!
-  const catalogHeaderCloseDom = document.querySelector<HTMLDivElement>(
-    '.catalog__header__close'
-  )!
-  const switchCatalog = () => {
-    isCatalogShow = !isCatalogShow
-    if (isCatalogShow) {
-      catalogDom.style.display = 'block'
-      updateCatalog()
-    } else {
-      catalogDom.style.display = 'none'
-    }
-  }
-  catalogModeDom.onclick = switchCatalog
-  catalogHeaderCloseDom.onclick = switchCatalog
-
   const pageModeDom = document.querySelector<HTMLDivElement>('.page-mode')!
   const pageModeOptionsDom =
     pageModeDom.querySelector<HTMLDivElement>('.options')!
@@ -1476,61 +1421,6 @@ window.onload = function () {
     })
   }
 
-  // 模拟批注
-  const commentDom = document.querySelector<HTMLDivElement>('.comment')!
-  async function updateComment() {
-    const groupIds = await instance.command.getGroupIds()
-    for (const comment of commentList) {
-      const activeCommentDom = commentDom.querySelector<HTMLDivElement>(
-        `.comment-item[data-id='${comment.id}']`
-      )
-      // 编辑器是否存在对应成组id
-      if (groupIds.includes(comment.id)) {
-        // 当前dom是否存在-不存在则追加
-        if (!activeCommentDom) {
-          const commentItem = document.createElement('div')
-          commentItem.classList.add('comment-item')
-          commentItem.setAttribute('data-id', comment.id)
-          commentItem.onclick = () => {
-            instance.command.executeLocationGroup(comment.id)
-          }
-          commentDom.append(commentItem)
-          // 选区信息
-          const commentItemTitle = document.createElement('div')
-          commentItemTitle.classList.add('comment-item__title')
-          commentItemTitle.append(document.createElement('span'))
-          const commentItemTitleContent = document.createElement('span')
-          commentItemTitleContent.innerText = comment.rangeText
-          commentItemTitle.append(commentItemTitleContent)
-          const closeDom = document.createElement('i')
-          closeDom.onclick = () => {
-            instance.command.executeDeleteGroup(comment.id)
-          }
-          commentItemTitle.append(closeDom)
-          commentItem.append(commentItemTitle)
-          // 基础信息
-          const commentItemInfo = document.createElement('div')
-          commentItemInfo.classList.add('comment-item__info')
-          const commentItemInfoName = document.createElement('span')
-          commentItemInfoName.innerText = comment.userName
-          const commentItemInfoDate = document.createElement('span')
-          commentItemInfoDate.innerText = comment.createdDate
-          commentItemInfo.append(commentItemInfoName)
-          commentItemInfo.append(commentItemInfoDate)
-          commentItem.append(commentItemInfo)
-          // 详细评论
-          const commentItemContent = document.createElement('div')
-          commentItemContent.classList.add('comment-item__content')
-          commentItemContent.innerText = comment.content
-          commentItem.append(commentItemContent)
-          commentDom.append(commentItem)
-        }
-      } else {
-        // 编辑器内不存在对应成组id则dom则移除
-        activeCommentDom?.remove()
-      }
-    }
-  }
   // 8. 内部事件监听
   instance.listener.rangeStyleChange = function (payload) {
     // 控件类型
@@ -1682,25 +1572,7 @@ window.onload = function () {
     } else {
       listDom.classList.remove('active')
     }
-
-    // 批注
-    commentDom
-      .querySelectorAll<HTMLDivElement>('.comment-item')
-      .forEach(commentItemDom => {
-        commentItemDom.classList.remove('active')
-      })
-    if (payload.groupIds) {
-      const [id] = payload.groupIds
-      const activeCommentDom = commentDom.querySelector<HTMLDivElement>(
-        `.comment-item[data-id='${id}']`
-      )
-      if (activeCommentDom) {
-        activeCommentDom.classList.add('active')
-        scrollIntoView(commentDom, activeCommentDom)
-      }
-    }
   }
-
   instance.listener.visiblePageNoListChange = function (payload) {
     const text = payload.map(i => i + 1).join('、')
     document.querySelector<HTMLSpanElement>('.page-no-list')!.innerText = text
@@ -1759,16 +1631,6 @@ window.onload = function () {
     document.querySelector<HTMLSpanElement>('.word-count')!.innerText = `${
       wordCount || 0
     }`
-    // 目录
-    if (isCatalogShow) {
-      nextTick(() => {
-        updateCatalog()
-      })
-    }
-    // 批注
-    nextTick(() => {
-      updateComment()
-    })
   }
   instance.listener.contentChange = debounce(handleContentChange, 200)
   handleContentChange()

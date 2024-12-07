@@ -90,12 +90,12 @@ export class CheckboxParticle {
         translate: [0.5, 0.5], fillColor: fillStyle, lineWidth
       })
       // 勾选对号
+      console.log(strokeStyle)
       ctx.line({
         color: strokeStyle, lineWidth: lineWidth * 2 * scale, translate: [0.5,0.5]
       })
         .path(left + 2 * scale, top + height / 2, left + width / 2, top + height - 3 * scale)
         .path(left + width - 2 * scale, top + 3 * scale)
-        .path(left + 2 * scale, top + height / 2) // 需要 close 吗
         .draw()
     } else {
       ctx.strokeRect(left, top, width, height, {

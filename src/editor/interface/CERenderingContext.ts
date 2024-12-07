@@ -18,7 +18,7 @@ export interface CERenderingContext {
 
   rotate(d: number): void
 
-  measureText(text: string, font?: string): ITextMetrics
+  measureText(text: string, prop?: FontProperty): ITextMetrics
 
   text(text: string, x: number, y: number, prop: FontProperty): void
 
@@ -67,6 +67,8 @@ export interface FontProperty {
   textBaseline?: TextBaseline
   color?: string
   maxWidth?: number
+  fontStyle?: string
+  fontWeight?: number
 }
 
 export interface DrawArea {
