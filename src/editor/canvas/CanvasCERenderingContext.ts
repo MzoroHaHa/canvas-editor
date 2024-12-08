@@ -111,6 +111,9 @@ export class CanvasCERenderingContext implements CERenderingContext {
     if (prop.alpha || prop.alpha === 0) {
       this.ctx.globalAlpha = prop.alpha
     }
+    if (prop.translate && prop.translate.length == 2) {
+      this.ctx.translate(...prop.translate)
+    }
     this.ctx.fillText(text, x, y)
     this.ctx.restore()
   }
@@ -149,10 +152,9 @@ export class CanvasCERenderingContext implements CERenderingContext {
   }
 
   measureText(text: string, prop: FontProperty): ITextMetrics {
-
     let font
-    if (prop && prop.size && prop.font){
-       font = `${prop.fontStyle??''} ${prop.fontWeight??''} ${prop.size?`${prop.size}px` : ''} ${prop.font??''}`
+    if (prop && prop.size && prop.font) {
+      font = `${prop.fontStyle ?? ''} ${prop.fontWeight ?? ''} ${prop.size ? `${prop.size}px` : ''} ${prop.font ?? ''}`
     }
 
     if (font && font.trim().length > 0) {
@@ -169,6 +171,9 @@ export class CanvasCERenderingContext implements CERenderingContext {
   addWatermark(data: HTMLCanvasElement, area: DrawArea): void {
     // 创建平铺模式
     this.ctx.save()
+    if (area.alpha || area.alpha === 0) {
+      this.ctx.globalAlpha = area.alpha
+    }
     const pattern = this.ctx.createPattern(data, 'repeat')
     if (pattern) {
       this.ctx.fillStyle = pattern
@@ -192,7 +197,6 @@ export class CanvasRenderingContext2DLineDrawer implements LineDrawer {
   private readonly ctx: CanvasRenderingContext2D
 
   constructor(private _ctx: CanvasCERenderingContext, private prop: LineProperty) {
-    console.log(this.prop.color)
     this.alpha = this.prop.alpha ?? 1
     this.lineWidth = this.prop.lineWidth ?? 1
     this.strikeoutColor = this.prop.color ?? '#000'
@@ -208,7 +212,7 @@ export class CanvasRenderingContext2DLineDrawer implements LineDrawer {
   path(x1: number, y1: number, x2?: number, y2?: number): LineDrawer {
     this.actions.push(() => {
 
-      if (!x2 || !y2) {
+      if (typeof x2 !== 'number' || typeof y2 !== 'number') {
         this.ctx.lineTo(x1, y1)
       } else {
         this.ctx.moveTo(x1, y1)

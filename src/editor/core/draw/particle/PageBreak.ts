@@ -31,7 +31,9 @@ export class PageBreakParticle {
     const elementWidth = element.width! * scale
     const offsetY =
       this.draw.getDefaultBasicRowMarginHeight() * defaultRowMargin
-    const textMeasure = ctx.measureText(displayName)
+    const textMeasure = ctx.measureText(displayName, {
+      font, size
+    })
     const halfX = (elementWidth - textMeasure.width) / 2
     // 线段
     const lineProp: LineProperty = {
@@ -44,8 +46,9 @@ export class PageBreakParticle {
       .draw()
     // 文字
     const fontProp: FontProperty = {
-      font, size
+      font, size, translate: [0, 0.5 + offsetY]
     }
+    console.log(`x: ${x}, y: ${y}, halfX: ${halfX}, actualBoundingBoxAscent： ${textMeasure.actualBoundingBoxAscent}, size: ${size}, offsetY: ${offsetY} `)
     ctx.text(displayName, x + halfX, y + textMeasure.actualBoundingBoxAscent - size / 2, fontProp)
   }
 }

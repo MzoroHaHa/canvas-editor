@@ -69,6 +69,7 @@ export interface FontProperty {
   maxWidth?: number
   fontStyle?: string
   fontWeight?: number
+  translate?: [number, number]
 }
 
 export interface DrawArea {
@@ -76,4 +77,5 @@ export interface DrawArea {
   startY: number
   width: number
   height: number
+  alpha?: number
 }

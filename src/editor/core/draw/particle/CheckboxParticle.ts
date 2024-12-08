@@ -90,7 +90,6 @@ export class CheckboxParticle {
         translate: [0.5, 0.5], fillColor: fillStyle, lineWidth
       })
       // 勾选对号
-      console.log(strokeStyle)
       ctx.line({
         color: strokeStyle, lineWidth: lineWidth * 2 * scale, translate: [0.5,0.5]
       })

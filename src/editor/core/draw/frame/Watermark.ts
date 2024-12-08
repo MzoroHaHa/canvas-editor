@@ -24,7 +24,7 @@ export class Watermark {
       size: size*scale, font, alpha: opacity
     }
     const measureText = ctx.measureText(data, {
-      size, font
+      size: size*scale, font
     })
     if (repeat) {
       const dpr = this.draw.getPagePixelRatio()
@@ -59,7 +59,7 @@ export class Watermark {
         (patternHeight - textHeight) / 2 + measureText.actualBoundingBoxAscent
       )
       ctx.addWatermark(temporaryCanvas, {
-        startX: 0, startY: 0, width, height
+        startX: 0, startY: 0, width, height, alpha: opacity
       })
     } else {
       const x = width / 2

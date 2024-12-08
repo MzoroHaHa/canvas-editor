@@ -84,6 +84,8 @@ export class PdfCERenderingContext implements CERenderingContext {
       if (prop.font) this.doc.setFont(prop.font)
       if (prop.size) this.doc.setFontSize(prop.size)
       if (prop.color) this.doc.setTextColor(prop.color)
+      if (prop.translate && prop.translate.length === 2) this.translate(...prop.translate)
+      if (prop.alpha || prop.alpha === 0) this.doc.setGState(this.doc.GState({ 'stroke-opacity': prop.alpha ?? 1 }))
       this.doc.text(text, x, y, {
         align: prop.textAlign,
         baseline: prop.textBaseline,
@@ -147,8 +149,8 @@ export class PdfCERenderingContext implements CERenderingContext {
   // 这个方法返回值不准确，jspdf 中没有打到对应的接口
   measureText(text: string, prop: FontProperty): ITextMetrics {
     let font
-    if (prop && prop.size && prop.font){
-      font = `${prop.fontStyle??''} ${prop.fontWeight??0} ${prop.size?`${prop.size}px` : ''} ${prop.font??''}`
+    if (prop && prop.size && prop.font) {
+      font = `${prop.fontStyle ?? ''} ${prop.fontWeight ?? ''} ${prop.size ? `${prop.size}px` : ''} ${prop.font ?? ''}`
     }
 
     if (font && font.trim().length > 0) {
