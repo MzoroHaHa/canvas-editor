@@ -62,20 +62,12 @@ export class Watermark {
         startX: 0, startY: 0, width, height, alpha: opacity
       })
     } else {
-      const x = width / 2
-      const y = height / 2
-      ctx.translate(x, y)
-      ctx.rotate((-45 * Math.PI) / 180)
-      ctx.text(
-        data,
-        -measureText.width / 2,
-        measureText.actualBoundingBoxAscent - size / 2,
-        {
-          ...prop, color
-        }
-      )
-      ctx.rotate((45 * Math.PI) / 180)
-      ctx.translate(-x, -y)
+      console.log(`width ${width}, height ${height}, measureText.width ${measureText.width}, actualBoundingBoxAscent ${measureText.actualBoundingBoxAscent}, data: ${data}, prop = ${JSON.stringify({
+        ...prop, color 
+      })}`)
+      ctx.addWatermarkSingle(data, this.draw, {
+        ...prop, color
+      }, measureText)
     }
   }
 }

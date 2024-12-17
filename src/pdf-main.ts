@@ -1,4 +1,4 @@
-import { commentList, options, data } from './mock'
+import { commentList, data, options } from './mock'
 import './style.css'
 import prism from 'prismjs'
 import Editor, {
@@ -1635,8 +1635,15 @@ window.onload = function () {
   instance.listener.contentChange = debounce(handleContentChange, 200)
   handleContentChange()
 
+  let url = ''
   instance.listener.saved = function (payload) {
     console.log('elementList: ', payload)
+    if (url) {
+      URL.revokeObjectURL(url)
+    }
+    const pdf = instance.command.getPdf()
+    url = URL.createObjectURL(pdf);
+    (document.getElementById('pdfDom')! as HTMLIFrameElement).src=url
   }
 
   // 9. 右键菜单注册

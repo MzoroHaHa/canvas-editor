@@ -7,6 +7,7 @@ import {
   TextDirection
 } from '../interface/CERenderingContext'
 import { ITextMetrics } from '../interface/Text'
+import { Draw } from '../core/draw/Draw'
 
 export class CanvasCERenderingContext implements CERenderingContext {
 
@@ -114,6 +115,9 @@ export class CanvasCERenderingContext implements CERenderingContext {
     if (prop.translate && prop.translate.length == 2) {
       this.ctx.translate(...prop.translate)
     }
+    if (prop.rotate) {
+      this.ctx.rotate(prop.rotate)
+    }
     this.ctx.fillText(text, x, y)
     this.ctx.restore()
   }
@@ -124,11 +128,6 @@ export class CanvasCERenderingContext implements CERenderingContext {
 
   scale(x: number, y: number): void {
     this.ctx.scale(x, y)
-  }
-
-
-  rotate(d: number): void {
-    this.ctx.rotate(d)
   }
 
   initPageContext(scale: number, direction: TextDirection): void {
@@ -182,6 +181,19 @@ export class CanvasCERenderingContext implements CERenderingContext {
     this.ctx.restore()
 
   }
+
+  addWatermarkSingle(data: string, draw: Draw, prop: FontProperty, metrics: ITextMetrics): void {
+    const width = draw.getWidth()
+    const height = draw.getHeight()
+    const {watermark: {size}} = draw.getOptions()
+    prop.translate = [width/2, height/2]
+    prop.rotate = -45 * Math.PI/180
+    console.log(prop.font, prop.size)
+    this.text(data,  -metrics.width / 2,
+      metrics.actualBoundingBoxAscent - size / 2, prop)
+  }
+
+
 
   cleanPage(pageWidth: number, pageHeight: number): void {
     this.ctx.clearRect(0, 0, pageWidth, pageHeight)

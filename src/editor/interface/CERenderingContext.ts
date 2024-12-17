@@ -1,4 +1,5 @@
 import { ITextMetrics } from './Text'
+import { Draw } from '../core/draw/Draw'
 
 export interface CERenderingContext {
 
@@ -16,8 +17,6 @@ export interface CERenderingContext {
 
   scale(x: number, y: number): void
 
-  rotate(d: number): void
-
   measureText(text: string, prop?: FontProperty): ITextMetrics
 
   text(text: string, x: number, y: number, prop: FontProperty): void
@@ -31,6 +30,7 @@ export interface CERenderingContext {
   getFont(): string
 
   addWatermark(data: HTMLCanvasElement, area: DrawArea): void
+  addWatermarkSingle(data: string, draw: Draw, prop: FontProperty, metrics: ITextMetrics): void
 
   cleanPage(pageWidth: number, pageHeight: number): void;
 }
@@ -69,6 +69,7 @@ export interface FontProperty {
   maxWidth?: number
   fontStyle?: string
   fontWeight?: number
+  rotate?: number
   translate?: [number, number]
 }
 

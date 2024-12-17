@@ -113,6 +113,7 @@ import {
   IInsertAreaOption,
   ISetAreaPropertiesOption
 } from '../../interface/Area'
+import { DrawPdf } from '../draw/DrawPdf'
 
 export class CommandAdapt {
   private draw: Draw
@@ -1440,6 +1441,10 @@ export class CommandAdapt {
 
   public getImage(payload?: IGetImageOption): Promise<string[]> {
     return this.draw.getDataURL(payload)
+  }
+
+  public getPdf(): Blob {
+    return new DrawPdf(this.draw).genPdf()
   }
 
   public getOptions(): DeepRequired<IEditorOption> {

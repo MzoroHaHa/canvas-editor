@@ -27,8 +27,12 @@ export class DrawPdf {
     const pageList = this.draw.getPageList()
     if (pageList && pageList.length) {
       for (let i = 0; i < pageList.length; i++) {
-        this.ctxList.push(new PdfCERenderingContext(i, this.doc))
+        if (i !=0) {
+          this.doc.addPage([width, height])
+        }
+        this.ctxList.push(new PdfCERenderingContext(i+1, this.doc))
       }
+      this.doc.setPage(1)
     }
   }
 
@@ -60,7 +64,7 @@ export class DrawPdf {
         this.draw.setMode(mode)
       }
     }
-    return new Blob()
+    return this.doc.output('blob')
   }
 
   private _drawPage(payload: IDrawPagePayload) {

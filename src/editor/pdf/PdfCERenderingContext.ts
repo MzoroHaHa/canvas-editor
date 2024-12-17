@@ -2,6 +2,7 @@ import { CERenderingContext, DrawArea, FontProperty, LineDrawer, LineProperty } 
 import jsPDF from 'jspdf'
 import { getUUID } from '../utils'
 import { ITextMetrics } from '../interface/Text'
+import { Draw } from '../core/draw/Draw'
 
 
 const canvas = document.createElement('canvas')
@@ -20,6 +21,10 @@ export class PdfCERenderingContext implements CERenderingContext {
 
   get pdf() {
     return this.doc
+  }
+
+  get ctx() {
+    return this.doc.context2d
   }
 
   public drawImage(value: HTMLImageElement | string, dx: number, dy: number, width: number, height: number): void {
@@ -81,11 +86,14 @@ export class PdfCERenderingContext implements CERenderingContext {
 
   text(text: string, x: number, y: number, prop: FontProperty): void {
     this._execRestore(() => {
-      if (prop.font) this.doc.setFont(prop.font)
+      if (prop.font) this.ctx.font = prop.font
       if (prop.size) this.doc.setFontSize(prop.size)
       if (prop.color) this.doc.setTextColor(prop.color)
       if (prop.translate && prop.translate.length === 2) this.translate(...prop.translate)
-      if (prop.alpha || prop.alpha === 0) this.doc.setGState(this.doc.GState({ 'stroke-opacity': prop.alpha ?? 1 }))
+      if (prop.alpha || prop.alpha === 0) this.doc.setGState(this.doc.GState({ opacity: prop.alpha ?? 1 }))
+      if (prop.rotate) { // todo 这里的rotate 不对
+        this.rotate(prop.rotate)
+      }
       this.doc.text(text, x, y, {
         align: prop.textAlign,
         baseline: prop.textBaseline,
@@ -107,7 +115,9 @@ export class PdfCERenderingContext implements CERenderingContext {
   }
 
   translate(x: number, y: number): void {
-    const matrix = this.doc.Matrix(1.0, 0.0, 0.0, 1.0, x, y)
+    // https://stackoverflow.com/questions/77509324/how-to-use-setcurrenttransformationmatrix-in-jspdf
+    // https://github.com/parallax/jsPDF/blob/ddbfc0f0250ca908f8061a72fa057116b7613e78/jspdf.js#L791
+    const matrix = this.doc.Matrix(1.0, 0.0, 0.0, 1.0, x / (96/72), -y / (96/72))
     this.doc.setCurrentTransformationMatrix(matrix)
   }
 
@@ -117,7 +127,8 @@ export class PdfCERenderingContext implements CERenderingContext {
   }
 
 
-  rotate(d: number): void {
+  private rotate(d: number): void {
+    // TODO 这里不对,它就是不转 https://github.com/parallax/jsPDF/issues/2935
     const matrix = this.doc.Matrix(
       Math.cos(d),
       Math.sin(d),
@@ -138,12 +149,13 @@ export class PdfCERenderingContext implements CERenderingContext {
     }
   }
 
-  setGlobalAlpha(): void {
+  setGlobalAlpha(alpha:number): void {
     // pdf
+    this.ctx.globalAlpha = alpha
   }
 
   getGlobalAlpha(): number {
-    return 1
+    return this.ctx.globalAlpha
   }
 
   // 这个方法返回值不准确，jspdf 中没有打到对应的接口
@@ -186,6 +198,23 @@ export class PdfCERenderingContext implements CERenderingContext {
         })
       }
     }
+  }
+
+  addWatermarkSingle(data: string, draw: Draw, prop: FontProperty, metrics: ITextMetrics): void {
+    const width = draw.getWidth()
+    const height = draw.getHeight()
+    const rotatedTextWidth = metrics.width * Math.sin(45)
+    const rotatedTextOffset = metrics.actualBoundingBoxAscent * Math.sin(45)
+    const tx = (width - rotatedTextWidth) / 2 + (rotatedTextOffset)
+    const ty = (height - rotatedTextWidth) / 2 + rotatedTextWidth - (rotatedTextOffset/2)
+    console.log(prop.font, prop.size)
+    this._execRestore(() => {
+      if (prop.font) this.ctx.font = `${prop.size?? 120}px ${prop.font}`
+      if (prop.color) this.doc.setTextColor(prop.color)
+      if (prop.alpha || prop.alpha === 0) this.doc.setGState(this.doc.GState({ opacity: prop.alpha ?? 1 }))
+
+      this.doc.text(data, tx, ty, undefined, 45)
+    })
   }
 
   cleanPage(): void {
