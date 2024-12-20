@@ -188,7 +188,6 @@ export class CanvasCERenderingContext implements CERenderingContext {
     const {watermark: {size}} = draw.getOptions()
     prop.translate = [width/2, height/2]
     prop.rotate = -45 * Math.PI/180
-    console.log(prop.font, prop.size)
     this.text(data,  -metrics.width / 2,
       metrics.actualBoundingBoxAscent - size / 2, prop)
   }

@@ -48,7 +48,6 @@ export class PageBreakParticle {
     const fontProp: FontProperty = {
       font, size, translate: [0, 0.5 + offsetY]
     }
-    console.log(`x: ${x}, y: ${y}, halfX: ${halfX}, actualBoundingBoxAscent： ${textMeasure.actualBoundingBoxAscent}, size: ${size}, offsetY: ${offsetY} `)
     ctx.text(displayName, x + halfX, y + textMeasure.actualBoundingBoxAscent - size / 2, fontProp)
   }
 }

@@ -1,23 +1,22 @@
 import { CERenderingContext } from '../../interface/CERenderingContext'
 import { Draw } from './Draw'
-import { IDrawPagePayload } from '../../interface/Draw'
+import { IDrawPagePayload, IGetPdfOption } from '../../interface/Draw'
 import { PdfCERenderingContext } from '../../pdf/PdfCERenderingContext'
 import { EditorMode, EditorZone, PageMode } from '../../dataset/enum/Editor'
 import { ImageDisplay } from '../../dataset/enum/Common'
-import jsPDF from 'jspdf'
 import { ImageParticle } from './particle/ImageParticle'
-
+import jsPDF from 'jspdf'
 export class DrawPdf {
   private ctxList: CERenderingContext[]
   private draw: Draw
   private doc: jsPDF
 
-  constructor(draw: Draw) {
+  constructor(draw: Draw, private option: IGetPdfOption = {}) {
     this.ctxList = []
     this.draw = draw
     const options = this.draw.getOptions()
     const { width, height } = options
-    this.doc = new jsPDF({
+    this.doc = new window.jspdf.jsPDF({
       orientation: 'p',
       unit: 'px',
       format: [width, height],
@@ -38,7 +37,9 @@ export class DrawPdf {
 
   public genPdf(): Blob {
 
-
+    if (typeof this.option.beforeExport === 'function') {
+      this.option.beforeExport(this.doc)
+    }
     const mode = this.draw.getMode()
     if (mode != EditorMode.PRINT) {
       this.draw.setMode(EditorMode.PRINT)

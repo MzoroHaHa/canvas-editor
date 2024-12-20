@@ -43,7 +43,7 @@ import {
   IDrawImagePayload,
   IDrawOption,
   IForceUpdateOption,
-  IGetImageOption,
+  IGetImageOption, IGetPdfOption,
   IGetValueOption,
   IPainterOption
 } from '../../interface/Draw'
@@ -1443,8 +1443,8 @@ export class CommandAdapt {
     return this.draw.getDataURL(payload)
   }
 
-  public getPdf(): Blob {
-    return new DrawPdf(this.draw).genPdf()
+  public getPdf(option: IGetPdfOption): Blob {
+    return new DrawPdf(this.draw, option).genPdf()
   }
 
   public getOptions(): DeepRequired<IEditorOption> {

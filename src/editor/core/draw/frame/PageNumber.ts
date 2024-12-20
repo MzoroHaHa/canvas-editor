@@ -68,7 +68,7 @@ export class PageNumber {
       x = margins[3]
     }
     ctx.text(text, x, y, {
-      font, size: size * scale, color
+      font: `${size * scale}px ${font}`, color
     })
   }
 }

@@ -62,9 +62,6 @@ export class Watermark {
         startX: 0, startY: 0, width, height, alpha: opacity
       })
     } else {
-      console.log(`width ${width}, height ${height}, measureText.width ${measureText.width}, actualBoundingBoxAscent ${measureText.actualBoundingBoxAscent}, data: ${data}, prop = ${JSON.stringify({
-        ...prop, color 
-      })}`)
       ctx.addWatermarkSingle(data, this.draw, {
         ...prop, color
       }, measureText)

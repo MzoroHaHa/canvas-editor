@@ -27,6 +27,14 @@ import { Signature } from './components/signature/Signature'
 import { debounce } from './utils'
 
 window.onload = function () {
+  const fontDom = document.querySelector<HTMLDivElement>('.menu-item__font')!
+  fontDom.classList.add('disable')
+  const myFont = new FontFace('sim-fang', 'url("/canvas-editor/fonts/simfang.ttf")')
+
+  myFont.load().then(font => {
+    document.fonts.add(font)
+    fontDom.classList.remove('disable')
+  })
   const isApple =
     typeof navigator !== 'undefined' && /Mac OS X/.test(navigator.userAgent)
 
@@ -130,7 +138,7 @@ window.onload = function () {
     }
 
   // 3. | 字体 | 字体变大 | 字体变小 | 加粗 | 斜体 | 下划线 | 删除线 | 上标 | 下标 | 字体颜色 | 背景色 |
-  const fontDom = document.querySelector<HTMLDivElement>('.menu-item__font')!
+
   const fontSelectDom = fontDom.querySelector<HTMLDivElement>('.select')!
   const fontOptionDom = fontDom.querySelector<HTMLDivElement>('.options')!
   fontDom.onclick = function () {
@@ -1641,9 +1649,13 @@ window.onload = function () {
     if (url) {
       URL.revokeObjectURL(url)
     }
-    const pdf = instance.command.getPdf()
+    const pdf = instance.command.getPdf({beforeExport: (doc) => {
+        // add the font to jsPDF
+        // doc.addFileToVFS("MyFont.ttf", myFont);
+        doc.addFont('/canvas-editor/fonts/simfang.ttf', 'sim-fang', 'normal')
+      }})
     url = URL.createObjectURL(pdf);
-    (document.getElementById('pdfDom')! as HTMLIFrameElement).src=url
+    (document.getElementById('pdfDom')! as HTMLIFrameElement).src=url+'#toolbar=0'
   }
 
   // 9. 右键菜单注册

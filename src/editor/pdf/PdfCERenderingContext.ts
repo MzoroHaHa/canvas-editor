@@ -1,8 +1,8 @@
 import { CERenderingContext, DrawArea, FontProperty, LineDrawer, LineProperty } from '../interface/CERenderingContext'
-import jsPDF from 'jspdf'
 import { getUUID } from '../utils'
 import { ITextMetrics } from '../interface/Text'
 import { Draw } from '../core/draw/Draw'
+import jsPDF from 'jspdf'
 
 
 const canvas = document.createElement('canvas')
@@ -91,9 +91,6 @@ export class PdfCERenderingContext implements CERenderingContext {
       if (prop.color) this.doc.setTextColor(prop.color)
       if (prop.translate && prop.translate.length === 2) this.translate(...prop.translate)
       if (prop.alpha || prop.alpha === 0) this.doc.setGState(this.doc.GState({ opacity: prop.alpha ?? 1 }))
-      if (prop.rotate) { // todo 这里的rotate 不对
-        this.rotate(prop.rotate)
-      }
       this.doc.text(text, x, y, {
         align: prop.textAlign,
         baseline: prop.textBaseline,
@@ -125,21 +122,6 @@ export class PdfCERenderingContext implements CERenderingContext {
     const matrix = this.doc.Matrix(scaleWidth, 0.0, 0.0, scaleHeight, 0.0, 0.0)
     this.doc.setCurrentTransformationMatrix(matrix)
   }
-
-
-  private rotate(d: number): void {
-    // TODO 这里不对,它就是不转 https://github.com/parallax/jsPDF/issues/2935
-    const matrix = this.doc.Matrix(
-      Math.cos(d),
-      Math.sin(d),
-      -Math.sin(d),
-      Math.cos(d),
-      0.0,
-      0.0
-    )
-    this.doc.setCurrentTransformationMatrix(matrix)
-  }
-
 
   initPageContext(scale: number, direction: string): void {
     const matrix = this.doc.Matrix(scale, 0.0, 0.0, scale, 0.0, 0.0)
@@ -207,7 +189,6 @@ export class PdfCERenderingContext implements CERenderingContext {
     const rotatedTextOffset = metrics.actualBoundingBoxAscent * Math.sin(45)
     const tx = (width - rotatedTextWidth) / 2 + (rotatedTextOffset)
     const ty = (height - rotatedTextWidth) / 2 + rotatedTextWidth - (rotatedTextOffset/2)
-    console.log(prop.font, prop.size)
     this._execRestore(() => {
       if (prop.font) this.ctx.font = `${prop.size?? 120}px ${prop.font}`
       if (prop.color) this.doc.setTextColor(prop.color)
