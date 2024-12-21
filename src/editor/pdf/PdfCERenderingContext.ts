@@ -7,10 +7,12 @@ import jsPDF from 'jspdf'
 
 const canvas = document.createElement('canvas')
 const canvasCtx = canvas.getContext('2d')!
+const svgDataPrefix = 'data:image/svg+xml;base64,'
 
 export class PdfCERenderingContext implements CERenderingContext {
 
   private textDirection: any = {}
+  private promises: Promise<any>[] = []
 
   constructor(private pageNo: number, private doc: jsPDF) {
   }
@@ -27,9 +29,96 @@ export class PdfCERenderingContext implements CERenderingContext {
     return this.doc.context2d
   }
 
+  public loadOver() {
+    return Promise.all(this.promises)
+  }
+
   public drawImage(value: HTMLImageElement | string, dx: number, dy: number, width: number, height: number): void {
-    this._execRestore(() => {
-      this.doc.addImage(value, '', dx, dy, width, height, '', 'FAST')
+    if (typeof value === 'string') {
+      const pr = this._getSvgCanvasFromStr(value, width, height).then(v => {
+        this._execRestore(() => {
+          this.doc.setGState(this.doc.GState({ opacity: 1, 'stroke-opacity': 1 }))
+          this.doc.addImage(v, '', dx, dy, width, height, '', 'FAST')
+        })
+      })
+      this.promises.push(pr)
+    } else {
+      if (value.src && value.src.startsWith(svgDataPrefix)) {
+        const pr = this._getSvgCanvasFromImgEle(value, width, height).then(v => {
+          this._execRestore(() => {
+            this.doc.setGState(this.doc.GState({ opacity: 1, 'stroke-opacity': 1 }))
+            this.doc.addImage(v, '', dx, dy, width, height, '', 'FAST')
+          })
+        })
+        this.promises.push(pr)
+      } else {
+        this._execRestore(() => {
+          this.doc.setGState(this.doc.GState({ opacity: 1, 'stroke-opacity': 1 }))
+          this.doc.addImage(value, '', dx, dy, width, height, '', 'FAST')
+        })
+      }
+    }
+  }
+
+  private _getSvgCanvasFromImgEle(img: HTMLImageElement, width: number, height: number): Promise<string|HTMLImageElement> {
+
+    if (img.src.startsWith(svgDataPrefix)) {
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')!
+      ctx.clearRect(0,0,width, height)
+      if (img.complete) {
+        ctx.drawImage(img, 0, 0, width, height)
+        return Promise.resolve(canvas.toDataURL('image/png'))
+      } else {
+        return new Promise(resolve => {
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, width, height)
+            resolve(canvas.toDataURL('image/png'))
+          }
+        })
+      }
+    } else {
+      if (img.complete) {
+        return Promise.resolve(img)
+      } else {
+        return  new Promise((resolve) => {
+          if (img.complete) {
+            resolve(img)
+          } else {
+            img.onload = () => {
+              resolve(img)
+            }
+          }
+        })
+      }
+    }
+  }
+
+  private _getSvgCanvasFromStr(svgData: string, width: number, height: number): Promise<string> {
+    const cvs = document.createElement('canvas')
+    cvs.width = width
+    cvs.height = height
+    if (!svgData) {
+      return Promise.resolve(cvs.toDataURL('image/png'))
+    }
+
+    const img = new Image()
+    const ctx = cvs.getContext('2d')!
+    ctx.clearRect(0, 0, width, height)
+    return new Promise<string>((resolve) => {
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(cvs.toDataURL('image/png'))
+      }
+      if (svgData.startsWith('<svg')) {
+        img.innerHTML = svgData
+      }
+      if (svgData.startsWith(svgDataPrefix)) {
+        img.src = svgData
+      }
+
     })
   }
 
@@ -114,7 +203,7 @@ export class PdfCERenderingContext implements CERenderingContext {
   translate(x: number, y: number): void {
     // https://stackoverflow.com/questions/77509324/how-to-use-setcurrenttransformationmatrix-in-jspdf
     // https://github.com/parallax/jsPDF/blob/ddbfc0f0250ca908f8061a72fa057116b7613e78/jspdf.js#L791
-    const matrix = this.doc.Matrix(1.0, 0.0, 0.0, 1.0, x / (96/72), -y / (96/72))
+    const matrix = this.doc.Matrix(1.0, 0.0, 0.0, 1.0, x / (96 / 72), -y / (96 / 72))
     this.doc.setCurrentTransformationMatrix(matrix)
   }
 
@@ -131,7 +220,7 @@ export class PdfCERenderingContext implements CERenderingContext {
     }
   }
 
-  setGlobalAlpha(alpha:number): void {
+  setGlobalAlpha(alpha: number): void {
     // pdf
     this.ctx.globalAlpha = alpha
   }
@@ -188,9 +277,9 @@ export class PdfCERenderingContext implements CERenderingContext {
     const rotatedTextWidth = metrics.width * Math.sin(45)
     const rotatedTextOffset = metrics.actualBoundingBoxAscent * Math.sin(45)
     const tx = (width - rotatedTextWidth) / 2 + (rotatedTextOffset)
-    const ty = (height - rotatedTextWidth) / 2 + rotatedTextWidth - (rotatedTextOffset/2)
+    const ty = (height - rotatedTextWidth) / 2 + rotatedTextWidth - (rotatedTextOffset / 2)
     this._execRestore(() => {
-      if (prop.font) this.ctx.font = `${prop.size?? 120}px ${prop.font}`
+      if (prop.font) this.ctx.font = `${prop.size ?? 120}px ${prop.font}`
       if (prop.color) this.doc.setTextColor(prop.color)
       if (prop.alpha || prop.alpha === 0) this.doc.setGState(this.doc.GState({ opacity: prop.alpha ?? 1 }))
 

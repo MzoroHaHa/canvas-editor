@@ -1,4 +1,3 @@
-import { CERenderingContext } from '../../interface/CERenderingContext'
 import { Draw } from './Draw'
 import { IDrawPagePayload, IGetPdfOption } from '../../interface/Draw'
 import { PdfCERenderingContext } from '../../pdf/PdfCERenderingContext'
@@ -6,8 +5,9 @@ import { EditorMode, EditorZone, PageMode } from '../../dataset/enum/Editor'
 import { ImageDisplay } from '../../dataset/enum/Common'
 import { ImageParticle } from './particle/ImageParticle'
 import jsPDF from 'jspdf'
+
 export class DrawPdf {
-  private ctxList: CERenderingContext[]
+  private ctxList: PdfCERenderingContext[]
   private draw: Draw
   private doc: jsPDF
 
@@ -35,7 +35,7 @@ export class DrawPdf {
     }
   }
 
-  public genPdf(): Blob {
+  public genPdf(): Promise<Blob> {
 
     if (typeof this.option.beforeExport === 'function') {
       this.option.beforeExport(this.doc)
@@ -65,7 +65,13 @@ export class DrawPdf {
         this.draw.setMode(mode)
       }
     }
-    return this.doc.output('blob')
+    const promises: Promise<any>[] = []
+    for (let i = 0; i < this.ctxList.length; i++) {
+      promises.push(this.ctxList[i].loadOver())
+    }
+    return Promise.all(promises).then(() => {
+      return this.doc.output('blob')
+    })
   }
 
   private _drawPage(payload: IDrawPagePayload) {

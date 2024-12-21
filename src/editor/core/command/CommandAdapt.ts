@@ -1443,7 +1443,7 @@ export class CommandAdapt {
     return this.draw.getDataURL(payload)
   }
 
-  public getPdf(option: IGetPdfOption): Blob {
+  public getPdf(option: IGetPdfOption): Promise<Blob> {
     return new DrawPdf(this.draw, option).genPdf()
   }
 
